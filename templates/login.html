@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - X-Pilot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-split-body">
+    <!-- Floating Toast Notifications -->
+    <div id="toast-container" class="toast-container">
+        {% if error %}
+        <div class="toast error-toast">
+            <i class="fa-solid fa-circle-exclamation toast-icon"></i>
+            <div class="toast-content">
+                <span class="toast-title">Error</span>
+                <span class="toast-message">{{ error }}</span>
+            </div>
+            <button class="toast-close-btn">&times;</button>
+        </div>
+        {% endif %}
+        
+        {% if success %}
+        <div class="toast success-toast">
+            <i class="fa-solid fa-circle-check toast-icon"></i>
+            <div class="toast-content">
+                <span class="toast-title">Success</span>
+                <span class="toast-message">{{ success }}</span>
+            </div>
+            <button class="toast-close-btn">&times;</button>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="login-page-wrapper">
+        <div class="login-split-container">
+            <!-- Left Side: Brand Branding -->
+            <div class="login-left-panel">
+                <div class="brand-header">
+                    <div class="brand-logo">
+                        <i class="fa-solid fa-brain brand-icon"></i>
+                        <div class="brand-title-group">
+                            <span class="brand-title">X-Pilot</span>
+                            <span class="brand-subtitle">Intelligent NLP Assistant</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="illustration-container">
+                    <img src="{{ url_for('static', filename='images/login-illustration.png') }}" alt="NLP Interface Illustration" class="illustration-img">
+                </div>
+                
+                <div class="brand-tagline">
+                    <h2>Understand. Transform.<br>Explore <span class="purple-highlight">Language.</span></h2>
+                    <p>Your all-in-one workspace for NLP tasks powered by Intelligent AI.</p>
+                </div>
+            </div>
+            
+            <!-- Right Side: Form Controls -->
+            <div class="login-right-panel">
+                <div class="login-form-container">
+                    <h2>Welcome Back</h2>
+                    
+                    <p class="login-subtitle">Log in to access your NLP workspace</p>
+                    
+                    <form action="{{ url_for('login') }}" method="POST" class="auth-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="form-group">
+                            <label for="username">Email</label>
+                            <div class="input-icon-wrapper">
+                                <i class="fa-solid fa-envelope"></i>
+                                <input type="email" id="username" name="username" placeholder="Enter your email" required autofocus autocomplete="email">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <div class="input-icon-wrapper">
+                                <i class="fa-solid fa-lock"></i>
+                                <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password" minlength="8">
+                                <button type="button" id="toggle-password" class="password-toggle-btn" title="Toggle password visibility">
+                                    <i class="fa-solid fa-eye-slash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="auth-submit-btn main-action-btn">Log In</button>
+                    </form>
+                    
+                    <div class="login-footer-row">
+                        <a href="{{ url_for('forgot') }}" class="footer-link">Forgot Password?</a>
+                        <span class="footer-signup-text">
+                            Don't have an account? <a href="{{ url_for('signup') }}" class="footer-link highlight">Sign Up</a>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Clear active chat workspace state so a fresh login starts on a new empty chat
+        localStorage.removeItem('activeChatId');
+
+        const togglePassword = document.querySelector('#toggle-password');
+        const password = document.querySelector('#password');
+        togglePassword.addEventListener('click', () => {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            const icon = togglePassword.querySelector('i');
+            if (type === 'password') {
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                icon.className = 'fa-solid fa-eye';
+            }
+        });
+
+        // Prevent duplicate form submissions
+        const form = document.querySelector('.auth-form');
+        if (form) {
+            form.addEventListener('submit', () => {
+                const submitBtn = form.querySelector('.auth-submit-btn');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = 0.5;
+                }
+            });
+        }
+
+        // Manage floating toasts dismiss triggers
+        document.addEventListener('DOMContentLoaded', () => {
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(toast => {
+                const timer = setTimeout(() => {
+                    toast.classList.add('hide');
+                    setTimeout(() => toast.remove(), 300);
+                }, 5000);
+                
+                const closeBtn = toast.querySelector('.toast-close-btn');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        clearTimeout(timer);
+                        toast.classList.add('hide');
+                        setTimeout(() => toast.remove(), 300);
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

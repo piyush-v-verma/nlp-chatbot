@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-Pilot an Intelligent NLP Assistant</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSRF Token Meta Tag -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Collapsible Left Sidebar -->
+        <aside class="sidebar-left" id="sidebar-left">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-brain accent-icon"></i>
+                    <span>X-Pilot</span>
+                </div>
+                <button class="icon-btn toggle-sidebar-left-btn" id="hide-sidebar-btn" title="Collapse Sidebar">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+            </div>
+            
+            <button class="new-chat-btn" id="new-chat-btn">
+                <i class="fa-solid fa-plus"></i> New Chat
+            </button>
+            
+            <div class="chat-history-container">
+                <div class="sidebar-section-title">Chat History</div>
+                <ul class="chat-list" id="chat-list">
+                    <!-- Chat items injected dynamically -->
+                </ul>
+            </div>
+            
+            <div class="sidebar-footer">
+                <button class="footer-btn" id="settings-btn" title="Account Settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    Settings
+                </button>
+            </div>
+            <!-- Left Sidebar Resizer Handle -->
+            <div class="sidebar-resizer resizer-left" id="sidebar-left-resizer" title="Drag to resize sidebar"></div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-main">
+            <!-- Header bar -->
+            <header class="chat-header">
+                <div class="header-left">
+                    <button class="icon-btn" id="show-sidebar-btn" title="Expand Sidebar">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h2 id="active-chat-title">New Chat</h2>
+                </div>
+                <div class="header-right">
+                    <button class="inspector-toggle-btn" id="inspector-toggle-btn" title="NLP Inspector">
+                        <i class="fa-solid fa-gauge-high"></i> Inspect NLP
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Message feed -->
+            <div class="messages-container" id="messages-container">
+                <div class="welcome-screen" id="welcome-screen">
+                    <div class="welcome-logo">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <h1>Welcome to X-Pilot</h1>
+                    <p class="subtitle">An interactive natural language processing workbench and assistant.</p>
+                    
+                    <div class="capabilities-grid">
+                        <div class="capability-card" data-cmd="Analyze the sentiment of this review: I had a wonderful day today!">
+                            <i class="fa-solid fa-face-smile"></i>
+                            <h3>Sentiment Analysis</h3>
+                            <p>Detect positivity, negativity, and neutral polarity. Try: <code>Analyze the sentiment of this review: I had a wonderful day...</code></p>
+                        </div>
+                        <div class="capability-card" data-cmd="Find the named entities in this sentence: Barack Obama visited London to meet Queen Elizabeth.">
+                            <i class="fa-solid fa-id-card"></i>
+                            <h3>Named Entity Recognition</h3>
+                            <p>Extract names, locations, and organizations. Try: <code>Find the named entities in this sentence: Barack Obama...</code></p>
+                        </div>
+                        <div class="capability-card" data-cmd="Can you summarize this paragraph: Natural Language Processing (NLP) is a branch of Artificial Intelligence that enables computers to understand, interpret, and generate human language. It combines techniques from computer science, linguistics, and machine learning to analyze text and speech efficiently. NLP is widely used in applications such as chatbots, machine translation, sentiment analysis, speech recognition, spam filtering, and text summarization. Modern NLP systems use deep learning models to understand context and produce more accurate and human-like responses. Despite its many advantages, NLP still faces challenges such as understanding sarcasm, ambiguous words, multiple languages, and cultural context. Researchers continue to improve NLP models to make communication between humans and computers more natural, accurate, and efficient.">
+                            <i class="fa-solid fa-align-left"></i>
+                            <h3>Text Summarization</h3>
+                            <p>Condense long blocks of text into key ideas. Try: <code>Can you summarize this paragraph: Natural language...</code></p>
+                        </div>
+                        <div class="capability-card" data-cmd="Translate this into Hindi: What a beautiful morning!">
+                            <i class="fa-solid fa-language"></i>
+                            <h3>English to Hindi</h3>
+                            <p>Translate English sentences to Hindi. Try: <code>Translate this into Hindi: What a beautiful morning!</code></p>
+                        </div>
+                        <div class="capability-card" data-cmd="Solve the mathematical equation: 2x + 5 = 15">
+                            <i class="fa-solid fa-calculator"></i>
+                            <h3>SymPy Math Solver</h3>
+                            <p>Solve equations, derivatives, and integrals. Try: <code>Solve the mathematical equation: 2x + 5 = 15</code></p>
+                        </div>
+                        <div class="capability-card" data-cmd="Show grammatical POS tags for: The quick brown fox jumps over the lazy dog.">
+                            <i class="fa-solid fa-tags"></i>
+                            <h3>POS Tagging & Chunking</h3>
+                            <p>Analyze grammatical word tags and syntax trees. Try: <code>Show grammatical POS tags for: The quick brown...</code></p>
+                        </div>
+                    </div>
+                    
+                    <div class="welcome-prompts">
+                        <h3><i class="fa-regular fa-comment-dots"></i> Try Asking Naturally</h3>
+                        <div class="prompt-chips">
+                            <button class="prompt-chip" data-prompt="Analyze the sentiment of this review: I absolutely loved the movie, it was fantastic!">"Analyze the sentiment of this review..."</button>
+                            <button class="prompt-chip" data-prompt="Find the named entities in this text: Sundar Pichai is the CEO of Google.">"Find named entities in this text..."</button>
+                            <button class="prompt-chip" data-prompt="Translate to Hindi: I love my family">"Translate 'I love my family' into Hindi"</button>
+                            <button class="prompt-chip" data-prompt="Briefly condense this article: Natural language processing is a fascinating subfield of computer science. It enables machines to read, decipher, and make sense of human languages in a valuable way. Most NLP techniques rely on machine learning to derive meaning from human languages.">"Briefly condense this article..."</button>
+                            <button class="prompt-chip" data-prompt="Differentiate x^3 - 3*x^2 + 5x">"Differentiate x^3 - 3*x^2 + 5x"</button>
+                        </div>
+                    </div>
+                    
+                    <div class="welcome-tip">
+                        <p><i class="fa-solid fa-lightbulb"></i> <strong>Tip:</strong> Click the <strong>Inspect NLP</strong> button on any message to see the detailed step-by-step pipeline output!</p>
+                    </div>
+                </div>
+                <!-- End of Chat Footer -->
+                <div class="chat-end-footer" id="chat-end-footer" style="display: none;">
+                    <i class="fa-solid fa-circle-info chat-footer-info-icon"></i>
+                    <span>Ask naturally (e.g. "summarize the last chat", "translate hello to hindi"). Fallbacks use Wikipedia.</span>
+                </div>
+                <!-- Scroll clearance spacer -->
+                <div class="chat-scroll-clearance" id="chat-scroll-clearance" style="height: 76px;"></div>
+            </div>
+            
+            <!-- Bottom blur overlay -->
+            <div class="chat-bottom-blur-gradient" aria-hidden="true"></div>
+            
+            <!-- Input container -->
+            <div class="input-container">
+                <!-- Autocomplete Popup -->
+                <div class="autocomplete-popup" id="autocomplete-popup">
+                    <!-- Suggestions injected dynamically -->
+                </div>
+                
+                <div class="input-wrapper">
+                    <textarea id="chat-input" placeholder="Type a message or ask an NLP question naturally..." rows="1"></textarea>
+                    <button type="button" class="floating-top-expand-btn" id="expand-toggle-btn" title="Expand input" style="display: none;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-maximize-2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+                    </button>
+                    <button class="icon-btn mic-btn" id="mic-btn" title="Speech to Text (Microphone)">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                    <button class="send-btn" id="send-btn" disabled>
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Side NLP Drawer -->
+        <aside class="sidebar-right" id="sidebar-right">
+            <!-- Right Sidebar Resizer Handle -->
+            <div class="sidebar-resizer resizer-right" id="sidebar-right-resizer" title="Drag to resize inspector"></div>
+            <div class="inspector-header">
+                <h3><i class="fa-solid fa-microchip" style="color: var(--accent);"></i> NLP Inspector</h3>
+                <div class="inspector-header-actions">
+                    <span class="inspector-status-pill" id="inspector-status-pill" title="Pipeline Latency">
+                        <i class="fa-solid fa-bolt"></i> <span id="inspector-latency-text">0 ms</span>
+                    </span>
+                    <button class="icon-btn" id="copy-nlp-json-btn" title="Copy Full NLP JSON Payload">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                    <button class="icon-btn close-inspector-btn" id="close-inspector-btn" title="Close Panel">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Inspector Info Banner -->
+            <div class="inspector-banner" id="inspector-banner">
+                <div class="inspector-empty-state">
+                    <div class="empty-state-icon"><i class="fa-solid fa-gauge-high"></i></div>
+                    <h4>Inspector Idle</h4>
+                    <p>Select or send a message in the chat to inspect its real-time NLP pipeline metrics.</p>
+                </div>
+            </div>
+            
+            <div class="inspector-content" id="inspector-content" style="display: none;">
+                <!-- Target Text Hero Card -->
+                <div class="inspector-section source-text-section">
+                    <div class="query-hero-meta">
+                        <span class="section-tag"><i class="fa-solid fa-terminal"></i> Query Input</span>
+                        <div class="query-stat-badges">
+                            <span class="query-stat-pill" id="stat-token-count"><i class="fa-solid fa-font"></i> 0 tokens</span>
+                            <span class="query-stat-pill intent-pill" id="stat-intent-badge">INTENT: GENERAL</span>
+                        </div>
+                    </div>
+                    <p class="source-text" id="inspector-source-text"></p>
+                </div>
+
+                <!-- Segmented Tabs Header -->
+                <div class="inspector-tabs">
+                    <button class="tab-btn active" data-tab="tab-overview">
+                        <i class="fa-solid fa-diagram-project"></i> <span>Overview</span>
+                    </button>
+                    <button class="tab-btn" data-tab="tab-tokens">
+                        <i class="fa-solid fa-cubes"></i> <span>Tokens</span>
+                        <span class="tab-count-badge" id="badge-tokens-count">0</span>
+                    </button>
+                    <button class="tab-btn" data-tab="tab-syntax">
+                        <i class="fa-solid fa-code-branch"></i> <span>Syntax</span>
+                    </button>
+                    <button class="tab-btn" data-tab="tab-ner">
+                        <i class="fa-solid fa-tags"></i> <span>NER</span>
+                        <span class="tab-count-badge" id="badge-ner-count">0</span>
+                    </button>
+                    <button class="tab-btn" data-tab="tab-lda">
+                        <i class="fa-solid fa-layer-group"></i> <span>Topics</span>
+                    </button>
+                </div>
+                
+                <!-- Tabs Body Panels -->
+                <div class="tab-panels">
+                    <!-- OVERVIEW PANEL (Execution Timeline & Sentiment Gauge) -->
+                    <div class="tab-panel active" id="tab-overview">
+                        <div class="pipeline-stepper" id="pipeline-flowchart">
+                            <!-- Injected dynamically by JS -->
+                        </div>
+                    </div>
+                    
+                    <!-- TOKENS PANEL (Preprocessing Pipeline) -->
+                    <div class="tab-panel" id="tab-tokens">
+                        <div class="token-stats-bar" id="token-stats-bar">
+                            <!-- Injected dynamically by JS -->
+                        </div>
+                        <div class="token-group">
+                            <div class="token-group-header">
+                                <h4><i class="fa-solid fa-list-ol"></i> 1. Raw Tokens (Lexical Split)</h4>
+                                <span class="group-count" id="count-raw-tokens">0</span>
+                            </div>
+                            <div class="token-tags" id="tokens-list-raw"></div>
+                        </div>
+                        <div class="token-group">
+                            <div class="token-group-header">
+                                <h4><i class="fa-solid fa-filter"></i> 2. Informative Words (Stopwords Filtered)</h4>
+                                <span class="group-count" id="count-clean-tokens">0</span>
+                            </div>
+                            <div class="token-tags" id="tokens-list-clean"></div>
+                        </div>
+                        <div class="token-group">
+                            <div class="token-group-header">
+                                <h4><i class="fa-solid fa-scissors"></i> 3. Stemmed Word Roots (Porter Stemmer)</h4>
+                                <span class="group-count" id="count-stemmed-tokens">0</span>
+                            </div>
+                            <div class="token-tags" id="tokens-list-stemmed"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- SYNTAX PANEL (POS Tagging & Tree Chunking) -->
+                    <div class="tab-panel" id="tab-syntax">
+                        <div class="syntax-layout">
+                            <div class="syntax-section-header">
+                                <h4><i class="fa-solid fa-spell-check"></i> Part-of-Speech Tagging</h4>
+                                <div class="pos-legend">
+                                    <span class="pos-legend-item pos-noun-legend"><span class="legend-dot"></span> Noun</span>
+                                    <span class="pos-legend-item pos-verb-legend"><span class="legend-dot"></span> Verb</span>
+                                    <span class="pos-legend-item pos-adj-legend"><span class="legend-dot"></span> Adj</span>
+                                    <span class="pos-legend-item pos-pron-legend"><span class="legend-dot"></span> Pron</span>
+                                </div>
+                            </div>
+                            <div class="pos-tags-container" id="pos-tags-list">
+                                <!-- POS bubbles injected -->
+                            </div>
+                            
+                            <div class="syntax-section-header" style="margin-top: 24px;">
+                                <h4><i class="fa-solid fa-sitemap"></i> Syntactic Phrase Tree (NLTK Chunker)</h4>
+                            </div>
+                            <p class="panel-subtitle">Hierarchical noun (NP), verb (VP), and prepositional (PP) phrase nodes.</p>
+                            <div class="chunk-tree-container">
+                                <div class="chunk-tree" id="chunk-tree-visual">
+                                    <!-- Rendered visually as tree nodes -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- NER PANEL (Entities & In-text Highlighting) -->
+                    <div class="tab-panel" id="tab-ner">
+                        <div class="ner-section-header">
+                            <h4><i class="fa-solid fa-highlighter"></i> In-Text Entity Highlighter</h4>
+                        </div>
+                        <div class="ner-highlighted-box" id="ner-highlighted-box">
+                            <!-- Injected query with highlighted entity spans -->
+                        </div>
+                        
+                        <div class="ner-section-header" style="margin-top: 20px;">
+                            <h4><i class="fa-solid fa-id-card-clip"></i> Recognized Entities</h4>
+                        </div>
+                        <div class="ner-table-wrapper">
+                            <table class="ner-table">
+                               <thead>
+                                   <tr>
+                                       <th>Entity Text</th>
+                                       <th>Category</th>
+                                       <th>Tag</th>
+                                   </tr>
+                               </thead>
+                               <tbody id="ner-table-body">
+                                   <!-- Table rows injected -->
+                               </tbody>
+                            </table>
+                        </div>
+                        <div class="no-ner-message" id="no-ner-message" style="display: none;">
+                            <i class="fa-regular fa-folder-open"></i> No named entities recognized in this query.
+                        </div>
+                    </div>
+                    
+                    <!-- TOPICS / LDA PANEL -->
+                    <div class="tab-panel" id="tab-lda">
+                        <div class="lda-section-header">
+                            <h4><i class="fa-solid fa-brain"></i> Latent Dirichlet Allocation (scikit-learn)</h4>
+                        </div>
+                        <div id="lda-has-data" style="display: none;">
+                            <div class="topic-list" id="lda-topics-list">
+                                <!-- Topics injected -->
+                            </div>
+                            <h4 style="margin-top: 20px; font-size: 0.85rem;"><i class="fa-solid fa-chart-pie"></i> Sentence Distribution in Topics</h4>
+                            <div class="lda-docs" id="lda-sentences-list">
+                                <!-- Sentence tags -->
+                            </div>
+                        </div>
+                        <div class="no-lda-message" id="no-lda-message">
+                            <i class="fa-solid fa-circle-info"></i> Topic modeling was not executed for this short sentence. LDA requires larger documents containing approximately 80+ words.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Custom Confirm Modal -->
+    <div class="modal-overlay" id="confirm-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fa-solid fa-triangle-exclamation modal-icon"></i>
+                <h3>Confirm Action</h3>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn cancel-btn" id="confirm-cancel-btn">Cancel</button>
+                <button class="modal-btn confirm-btn" id="confirm-ok-btn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal (Redesigned Two-Column Layout) -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="settings-modal-content">
+            <!-- Left Sidebar Menu -->
+            <aside class="settings-sidebar">
+                <div class="settings-menu-list">
+                    <!-- Section: Settings -->
+                    <div class="settings-menu-section">
+                        <div class="settings-section-title">Settings</div>
+                        <button class="settings-menu-item active" data-target="pane-account">
+                            <i class="fa-solid fa-user" style="margin-right: 8px;"></i> Account
+                        </button>
+                        <button class="settings-menu-item" data-target="pane-chat">
+                            <i class="fa-solid fa-comments" style="margin-right: 8px;"></i> Chat Options
+                        </button>
+                        <button class="settings-menu-item" data-target="pane-nlp">
+                            <i class="fa-solid fa-gauge-high" style="margin-right: 8px;"></i> NLP Inspector
+                        </button>
+                        <button class="settings-menu-item" data-target="pane-appearance">
+                            <i class="fa-solid fa-palette" style="margin-right: 8px;"></i> Appearance
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sidebar Bottom Links -->
+                <div class="settings-sidebar-bottom">
+                    <a href="{{ url_for('logout') }}" class="settings-menu-item logout" onclick="localStorage.removeItem('activeChatId');">
+                        <i class="fa-solid fa-arrow-right-from-bracket" style="margin-right: 8px;"></i> Log Out
+                    </a>
+                </div>
+            </aside>
+
+            <!-- Right Main Content Area -->
+            <main class="settings-main-pane">
+                <!-- Close Modal Button -->
+                <button class="settings-pane-close-btn" id="settings-close-btn" title="Close Settings">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+                <!-- PANE: ACCOUNT -->
+                <div class="settings-pane-content" id="pane-account">
+                    <div class="settings-pane-header">
+                        <h2>Account Settings</h2>
+                        <p>Configure account details, credentials, and API connections.</p>
+                    </div>
+                    
+                    <div class="settings-pane-section">
+                        <div class="settings-pane-section-title">User Profile</div>
+                        <div class="settings-card">
+                            <div class="settings-card-info">
+                                <div class="settings-card-title">Logged In As</div>
+                                <div class="settings-card-desc">Active account username used for session authentication.</div>
+                            </div>
+                            <div class="settings-card-control">
+                                <span style="font-weight: 600; color: #ffffff;" id="settings-username-display">Username</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-pane-section">
+                        <div class="settings-pane-section-title">API Integration</div>
+                        <div class="settings-card" style="align-items: flex-start; flex-direction: column; gap: 0;">
+                            <div class="settings-card-info" style="margin-bottom: 16px; width: 100%;">
+                                <div class="settings-card-title">Gemini API Key</div>
+                                <div class="settings-card-desc" style="margin-bottom: 12px;">Provide your custom Gemini API key to override the application's shared daily free limits.</div>
+                                <div class="input-icon-wrapper" style="width: 100%;">
+                                    <i class="fa-solid fa-key"></i>
+                                    <input type="password" id="settings-api-key" placeholder="Enter your Gemini API key (AIzaSy...)" style="width: 100%; box-sizing: border-box;">
+                                </div>
+                            </div>
+                            <button class="settings-btn-action" id="settings-save-btn" style="background-color: var(--accent); border-color: var(--accent); align-self: flex-end;">Save Key</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANE: CHAT OPTIONS -->
+                <div class="settings-pane-content" id="pane-chat" style="display: none;">
+                    <div class="settings-pane-header">
+                        <h2>Chat Options</h2>
+                        <p>Manage model execution characteristics and retention actions.</p>
+                    </div>
+
+                    <div class="settings-pane-section">
+                        <div class="settings-pane-section-title">Model Hyperparameters</div>
+                        <div class="settings-card" style="flex-direction: column; align-items: stretch; gap: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="settings-card-info">
+                                    <div class="settings-card-title">Creativity (Temperature)</div>
+                                    <div class="settings-card-desc">Controls how predictable or creative the AI model responses are.</div>
+                                </div>
+                                <div class="settings-card-control">
+                                    <span style="font-family: monospace; font-weight: bold; color: var(--accent);" id="temp-val-display">0.7</span>
+                                </div>
+                            </div>
+                            <input type="range" id="temp-range-input" min="0.0" max="1.0" step="0.1" value="0.7" style="width: 100%;">
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-info">
+                                <div class="settings-card-title">Max Tokens</div>
+                                <div class="settings-card-desc">Limits the length of text responses generated by the model.</div>
+                            </div>
+                            <div class="settings-card-control">
+                                <select class="settings-select" id="max-tokens-select">
+                                    <option value="500">500 Tokens</option>
+                                    <option value="1000" selected>1000 Tokens</option>
+                                    <option value="2000">2000 Tokens</option>
+                                    <option value="4000">4000 Tokens</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-pane-section">
+                        <div class="settings-pane-section-title">Data Management</div>
+                        <div class="settings-card">
+                            <div class="settings-card-info">
+                                <div class="settings-card-title">Clear Conversations</div>
+                                <div class="settings-card-desc">Wipes all stored chat histories and logs permanently. This cannot be undone.</div>
+                            </div>
+                            <div class="settings-card-control">
+                                <button class="settings-btn-action" id="clear-all-conversations-btn" style="color: #f38ba8; border-color: rgba(243, 139, 168, 0.3); background-color: rgba(243, 139, 168, 0.1);">Clear All</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANE: NLP INSPECTOR -->
+                <div class="settings-pane-content" id="pane-nlp" style="display: none;">
+                    <div class="settings-pane-header">
+                        <h2>NLP Inspector</h2>
+                        <p>Configure pipeline details for text inspection metrics.</p>
+                    </div>
+
+                    <div class="settings-pane-section">
+                        <div class="settings-pane-section-title">Pipeline Tasks</div>
+                        <div class="settings-card">
+                            <div class="settings-card-info">
+                                <div class="settings-card-title">Tokenization & Stemming</div>
+                                <div class="settings-card-desc">Process inputs into separate words, parts-of-speech, and root lemmas.</div>
+                            </div>
+                            <div class="settings-card-control">
+                                <div class="settings-toggle-group">
+                                    <button class="settings-toggle-btn active" id="toggle-nlp-tokens">Enabled</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-info">
+                                <div class="settings-card-title">Named Entity Recognition</div>
+                                <div class="settings-card-desc">Detect organizations, locations, people, and values from message bodies.</div>
+                            </div>
+                            <div class="settings-card-control">
+                                <div class="settings-toggle-group">
+                                    <button class="settings-toggle-btn active" id="toggle-nlp-ner">Enabled</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-info">
+                                <div class="settings-card-title">LDA Topic Extraction</div>
+                                <div class="settings-card-desc">Analyze documents over scikit-learn models for vocabulary distributions.</div>
+                            </div>
+                            <div class="settings-card-control">
+                                <div class="settings-toggle-group">
+                                    <button class="settings-toggle-btn active" id="toggle-nlp-lda">Enabled</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANE: APPEARANCE -->
+                <div class="settings-pane-content" id="pane-appearance" style="display: none;">
+                    <div class="settings-pane-header">
+                        <h2>Appearance</h2>
+                        <p>Customize themes, font sizes, and layout displays.</p>
+                    </div>
+
+                    <div class="settings-pane-section">
+                        <div class="settings-pane-section-title">Visual Layout</div>
+                        <div class="settings-card">
+                            <div class="settings-card-info">
+                                <div class="settings-card-title">Theme Mode</div>
+                                <div class="settings-card-desc">Toggle between Dark Mode and warm Creamy Light Mode.</div>
+                            </div>
+                            <div class="settings-card-control">
+                                <div class="settings-toggle-group">
+                                    <button class="settings-toggle-btn active" id="theme-btn-dark">Dark</button>
+                                    <button class="settings-toggle-btn" id="theme-btn-light">Light</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-card">
+                            <div class="settings-card-info">
+                                <div class="settings-card-title">Font Size</div>
+                                <div class="settings-card-desc">Scale text across all messages, headings, titles, inputs, and sidebars.</div>
+                            </div>
+                            <div class="settings-card-control">
+                                <select class="settings-select" id="settings-font-size-select">
+                                    <option value="small">Small</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="large">Large</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

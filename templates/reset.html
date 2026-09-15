@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password - X-Pilot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-body">
+    <!-- Floating Toast Notifications (Only for errors since success replaces card content) -->
+    <div id="toast-container" class="toast-container">
+        {% if error %}
+        <div class="toast error-toast">
+            <i class="fa-solid fa-circle-exclamation toast-icon"></i>
+            <div class="toast-content">
+                <span class="toast-title">Error</span>
+                <span class="toast-message">{{ error }}</span>
+            </div>
+            <button class="toast-close-btn">&times;</button>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="auth-container" style="animation: fadeInWrapper 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;">
+        <!-- Logo Centered Outside Container -->
+        <div style="text-align: center; margin-bottom: 24px;">
+            <div class="brand-logo" style="justify-content: center; margin-bottom: 8px;">
+                <i class="fa-solid fa-brain brand-icon"></i>
+                <span class="brand-title">X-Pilot</span>
+            </div>
+            <span class="brand-subtitle" style="color: #718096; font-size: 0.85rem;">Intelligent NLP Assistant</span>
+        </div>
+
+        <div class="auth-card">
+            {% if invalid_token %}
+            <!-- Invalid/Expired Token Screen -->
+            <div style="text-align: center; padding: 20px 0;">
+                <div style="font-size: 3.5rem; color: var(--error); margin-bottom: 24px; filter: drop-shadow(0 0 15px rgba(243, 139, 168, 0.35));">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                </div>
+                <h3 style="color: #ffffff; font-size: 1.4rem; font-weight: 600; margin-bottom: 12px;">Link Invalid or Expired</h3>
+                <p style="color: #a6adc8; font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px;">
+                    This password reset request is invalid or has expired. Please start the recovery process again.
+                </p>
+                <div class="auth-links-row" style="justify-content: center; gap: 24px;">
+                    <a href="{{ url_for('forgot') }}"><i class="fa-solid fa-arrow-left"></i> Back to Forgot Password</a>
+                    <a href="{{ url_for('login') }}"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
+                </div>
+            </div>
+            {% else %}
+            <!-- Reset Password Form and Content Wrapper -->
+            <div id="reset-content-wrapper">
+                <div class="auth-header">
+                    <h2>Reset Password</h2>
+                    <p class="subtitle" style="text-align: center; font-size: 0.9rem; color: #718096; margin-top: 4px;">Create a new password for your account.</p>
+                </div>
+                
+                <form action="{{ url_for('reset_password') }}?token={{ token }}" method="POST" class="auth-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="token" value="{{ token }}">
+                    <div class="form-group">
+                        <label for="new_password">New Password</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" id="new_password" name="new_password" placeholder="New password" required autocomplete="new-password" minlength="8">
+                            <button type="button" id="toggle-new-password" class="password-toggle-btn" title="Toggle password visibility">
+                                <i class="fa-solid fa-eye-slash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirm_password">Confirm Password</label>
+                        <div class="input-icon-wrapper">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm pass." required autocomplete="new-password" minlength="8">
+                            <button type="button" id="toggle-confirm-password" class="password-toggle-btn" title="Toggle password visibility">
+                                <i class="fa-solid fa-eye-slash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="auth-submit-btn main-action-btn" style="margin-top: 10px;">
+                        <span>Reset Password</span> <i class="fa-solid fa-key"></i>
+                    </button>
+                </form>
+                
+                <div class="auth-links-row" style="justify-content: center; margin-top: 24px;">
+                    <a href="{{ url_for('login') }}"><i class="fa-solid fa-arrow-left"></i> Back to Login</a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Toggle New Password Visibility
+        const toggleNewPassword = document.querySelector('#toggle-new-password');
+        const newPassword = document.querySelector('#new_password');
+        if (toggleNewPassword && newPassword) {
+            toggleNewPassword.addEventListener('click', () => {
+                const type = newPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+                newPassword.setAttribute('type', type);
+                const icon = toggleNewPassword.querySelector('i');
+                icon.className = type === 'password' ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+            });
+        }
+
+        // Toggle Confirm Password Visibility
+        const toggleConfirmPassword = document.querySelector('#toggle-confirm-password');
+        const confirmPassword = document.querySelector('#confirm_password');
+        if (toggleConfirmPassword && confirmPassword) {
+            toggleConfirmPassword.addEventListener('click', () => {
+                const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+                confirmPassword.setAttribute('type', type);
+                const icon = toggleConfirmPassword.querySelector('i');
+                icon.className = type === 'password' ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+            });
+        }
+
+        const form = document.querySelector('.auth-form');
+        const submitBtn = form ? form.querySelector('.auth-submit-btn') : null;
+        const contentWrapper = document.getElementById('reset-content-wrapper');
+
+        // Simple helper to show toast notifications dynamically
+        function showToast(type, title, message) {
+            const container = document.getElementById('toast-container') || document.body;
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}-toast`;
+            toast.innerHTML = `
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'} toast-icon"></i>
+                <div class="toast-content">
+                    <span class="toast-title">${title}</span>
+                    <span class="toast-message">${message}</span>
+                </div>
+                <button class="toast-close-btn">&times;</button>
+            `;
+            container.appendChild(toast);
+            
+            // Auto dismiss
+            const timer = setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+            
+            toast.querySelector('.toast-close-btn').addEventListener('click', () => {
+                clearTimeout(timer);
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 300);
+            });
+        }
+
+        if (form && submitBtn) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                // Prevent duplicate form submissions
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = 0.5;
+                
+                const formData = new FormData(form);
+                const params = new URLSearchParams(formData);
+                
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: params
+                })
+                .then(res => {
+                    if (res.status === 429) {
+                        throw new Error("Too many attempts. Please try again later.");
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = 1;
+                    
+                    if (data.success) {
+                        // 1. Broadcast channel message to trigger other tabs redirection
+                        const channel = new BroadcastChannel('password_reset');
+                        channel.postMessage('PASSWORD_RESET_SUCCESS');
+                        
+                        // 2. Render success message overlay dynamically
+                        contentWrapper.innerHTML = `
+                            <div style="text-align: center; padding: 20px 0;">
+                                <div style="font-size: 3.5rem; color: #a6e3a1; margin-bottom: 24px; filter: drop-shadow(0 0 15px rgba(166, 227, 161, 0.35));">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                </div>
+                                <h3 style="color: #ffffff; font-size: 1.4rem; font-weight: 600; margin-bottom: 12px;">Password Reset Successful</h3>
+                                <p style="color: #a6adc8; font-size: 0.95rem; line-height: 1.6; margin-bottom: 8px;">
+                                    Your password has been changed successfully. You will be redirected to the login page.
+                                </p>
+                            </div>
+                        `;
+                        
+                        // 3. Short delay (3s) and redirect
+                        setTimeout(() => {
+                            window.location.href = "{{ url_for('login') }}";
+                        }, 3000);
+                    } else {
+                        showToast('error', 'Error', data.message || 'An error occurred.');
+                    }
+                })
+                .catch(err => {
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = 1;
+                    showToast('error', 'Error', err.message || 'Network error occurred. Please try again.');
+                });
+            });
+        }
+
+        // Manage floating toasts dismiss triggers
+        document.addEventListener('DOMContentLoaded', () => {
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(toast => {
+                const timer = setTimeout(() => {
+                    toast.classList.add('hide');
+                    setTimeout(() => toast.remove(), 300);
+                }, 5000);
+                
+                const closeBtn = toast.querySelector('.toast-close-btn');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        clearTimeout(timer);
+                        toast.classList.add('hide');
+                        setTimeout(() => toast.remove(), 300);
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

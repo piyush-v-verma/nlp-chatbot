@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Password - X-Pilot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-split-body">
+    <!-- Floating Toast Notifications -->
+    <div id="toast-container" class="toast-container">
+        {% if error %}
+        <div class="toast error-toast">
+            <i class="fa-solid fa-circle-exclamation toast-icon"></i>
+            <div class="toast-content">
+                <span class="toast-title">Error</span>
+                <span class="toast-message">{{ error }}</span>
+            </div>
+            <button class="toast-close-btn">&times;</button>
+        </div>
+        {% endif %}
+        
+        {% if success %}
+        <div class="toast success-toast">
+            <i class="fa-solid fa-circle-check toast-icon"></i>
+            <div class="toast-content">
+                <span class="toast-title">Success</span>
+                <span class="toast-message">{{ success }}</span>
+            </div>
+            <button class="toast-close-btn">&times;</button>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="login-page-wrapper">
+        <div class="login-split-container">
+            <!-- Left Side: Form Controls (Form on the left, same as signup) -->
+            <div class="signup-form-panel">
+                <div class="login-form-container">
+                    <h2>Forgot Password?</h2>
+                    <p class="login-subtitle">Enter your email to reset your password.</p>
+                    
+                    <form action="{{ url_for('forgot') }}" method="POST" class="auth-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="form-group">
+                            <label for="username">Email</label>
+                            <div class="input-icon-wrapper">
+                                <i class="fa-solid fa-envelope"></i>
+                                <input type="email" id="username" name="username" placeholder="Enter your email" required autofocus autocomplete="email">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="auth-submit-btn main-action-btn">
+                            <span>Send Reset Link</span> <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </form>
+                    
+                    <div class="login-footer-row" style="justify-content: center;">
+                        <span class="footer-signup-text">
+                            Remember your password? <a href="{{ url_for('login') }}" class="footer-link highlight">Log In</a>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Side: Brand Branding (Branding on the right, same as signup) -->
+            <div class="signup-brand-panel">
+                <div class="brand-header">
+                    <div class="brand-logo">
+                        <i class="fa-solid fa-brain brand-icon"></i>
+                        <div class="brand-title-group">
+                            <span class="brand-title">X-Pilot</span>
+                            <span class="brand-subtitle">Intelligent NLP Assistant</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="illustration-container">
+                    <img src="{{ url_for('static', filename='images/login-illustration.png') }}" alt="NLP Interface Illustration" class="illustration-img">
+                </div>
+                
+                <div class="brand-tagline">
+                    <h2>Understand. Transform.<br>Explore <span class="purple-highlight">Language.</span></h2>
+                    <p>Your all-in-one workspace for NLP tasks powered by Intelligent AI.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // BroadcastChannel to synchronize tabs and redirect to Login
+        const channel = new BroadcastChannel('password_reset');
+        channel.onmessage = (event) => {
+            if (event.data === 'PASSWORD_RESET_SUCCESS') {
+                window.location.href = "{{ url_for('login') }}";
+            }
+        };
+
+        const form = document.querySelector('.auth-form');
+        const submitBtn = form ? form.querySelector('.auth-submit-btn') : null;
+
+        // Simple helper to show toast notifications dynamically
+        function showToast(type, title, message) {
+            const container = document.getElementById('toast-container') || document.body;
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}-toast`;
+            toast.innerHTML = `
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'} toast-icon"></i>
+                <div class="toast-content">
+                    <span class="toast-title">${title}</span>
+                    <span class="toast-message">${message}</span>
+                </div>
+                <button class="toast-close-btn">&times;</button>
+            `;
+            container.appendChild(toast);
+            
+            // Auto dismiss
+            const timer = setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+            
+            toast.querySelector('.toast-close-btn').addEventListener('click', () => {
+                clearTimeout(timer);
+                toast.classList.add('hide');
+                setTimeout(() => toast.remove(), 300);
+            });
+        }
+
+        if (form && submitBtn) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                // Prevent duplicate form submissions
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = 0.5;
+                
+                const formData = new FormData(form);
+                const params = new URLSearchParams(formData);
+                
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: params
+                })
+                .then(res => {
+                    if (res.status === 429) {
+                        throw new Error("Too many attempts. Please try again later.");
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = 1;
+                    
+                    if (data.success) {
+                        showToast('success', 'Success', 'Reset link generated successfully. Opening in new tab...');
+                        window.open(data.reset_url, '_blank');
+                    } else {
+                        showToast('error', 'Error', data.message || 'An error occurred.');
+                    }
+                })
+                .catch(err => {
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = 1;
+                    showToast('error', 'Error', err.message || 'Network error occurred. Please try again.');
+                });
+            });
+        }
+
+        // Manage floating toasts dismiss triggers
+        document.addEventListener('DOMContentLoaded', () => {
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(toast => {
+                const timer = setTimeout(() => {
+                    toast.classList.add('hide');
+                    setTimeout(() => toast.remove(), 300);
+                }, 5000);
+                
+                const closeBtn = toast.querySelector('.toast-close-btn');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        clearTimeout(timer);
+                        toast.classList.add('hide');
+                        setTimeout(() => toast.remove(), 300);
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
